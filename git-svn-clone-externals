@@ -85,22 +85,18 @@ git svn show-externals|grep -vE '#|^$'|sed -E 's,/([a-z+]+://), \1,'|while read 
 do
 	[ -z "${words[*]}" ] && continue
 
-	local_directory="$(echo ${words[0]}|sed 's,^/,,')"
-	revision=""
-	remote_url="${words[1]}"
+	local_directory="$(echo ${words[0]}|sed 's,^/,,')" && let i=1
+	[ "${words[i]:0:1}" = "-" ] && revision="${words[i]}" && let i++ || revision=""
+	remote_url="$(echo ${words[i]}|sed 's,/$,,')" && let i++
+	[ -n "${words[i]}" ] && local_directory="$local_directory/${words[i]}"
 
-	if [ -n "${words[2]}" ]; then
-		revision="${words[1]}"
-		remote_url="${words[2]}"
+	if [ -n "$USE_SSH" ]; then
+		echo "Rewriting url to use SVN+SSH."
+		shopt -s extglob
+		remote_url="${remote_url/+(http|https)/svn+ssh}"
 	fi
 
-    if [ -n "$USE_SSH" ]; then
-        echo "Rewriting url to use SVN+SSH."
-        shopt -s extglob
-        remote_url="${remote_url/+(http|https)/svn+ssh}"
-    fi
-
-    [ -z "${remote_url}" ] && continue
+	[ -z "${remote_url}" ] && continue
 
 	export local_directory revision remote_url
 
