@@ -94,11 +94,13 @@ function is_excluded()
             local result=1
         fi
     fi
-    echo $result 
+    echo $result
     return
 }
 
-git svn show-externals|grep -vE '#|^$'|sed -E 's,/([a-z+]+://), \1,'|while read -a words
+
+git svn show-externals|grep -vE '#|^$'| \
+    sed 's/\(-r\)[ ]*\([0-9]\{1,\}\)/\1\2/'|while read -a words
 do
     [ -z "${words[*]}" ] && continue
 
